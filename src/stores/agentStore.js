@@ -3,7 +3,8 @@ import { ResearchAgent, WriterAgent, CriticAgent } from '../agents/SpecializedAg
 
 const useAgentStore = create((set, get) => ({
   agents: [],
-  conversation: [],
+  conversations: [],
+  currentConversationId: null,
   selectedAgent: null,
   isProcessing: false,
   error: null,
@@ -19,9 +20,70 @@ const useAgentStore = create((set, get) => ({
         new CriticAgent()
       ]
       set({ agents, selectedAgent: agents[0], error: null })
+      
+      // Load saved conversations
+      const savedConversations = localStorage.getItem('conversations')
+      if (savedConversations) {
+        const conversations = JSON.parse(savedConversations)
+        set({ 
+          conversations,
+          currentConversationId: conversations[0]?.id || null
+        })
+      } else {
+        // Create initial conversation
+        get().createNewConversation()
+      }
     } catch (error) {
       set({ error: error.message })
     }
+  },
+
+  createNewConversation: () => {
+    const newConversation = {
+      id: Date.now().toString(),
+      title: 'New Chat',
+      messages: [],
+      createdAt: new Date().toISOString()
+    }
+    
+    set(state => ({
+      conversations: [newConversation, ...state.conversations],
+      currentConversationId: newConversation.id
+    }))
+    
+    get().saveConversations()
+  },
+
+  selectConversation: (conversationId) => {
+    set({ currentConversationId: conversationId })
+  },
+
+  deleteConversation: (conversationId) => {
+    set(state => {
+      const newConversations = state.conversations.filter(c => c.id !== conversationId)
+      const newCurrentId = state.currentConversationId === conversationId
+        ? newConversations[0]?.id || null
+        : state.currentConversationId
+        
+      return {
+        conversations: newConversations,
+        currentConversationId: newCurrentId
+      }
+    })
+    
+    get().saveConversations()
+  },
+
+  updateConversationTitle: (conversationId, title) => {
+    set(state => ({
+      conversations: state.conversations.map(conv =>
+        conv.id === conversationId
+          ? { ...conv, title }
+          : conv
+      )
+    }))
+    
+    get().saveConversations()
   },
 
   setSelectedAgent: (agent) => {
@@ -29,64 +91,96 @@ const useAgentStore = create((set, get) => ({
   },
 
   sendMessage: async (message) => {
-    const { selectedAgent, conversation } = get()
+    const { selectedAgent, conversations, currentConversationId } = get()
     
-    if (!selectedAgent) return
+    if (!selectedAgent || !currentConversationId) return
 
     set({ isProcessing: true, error: null })
     
     try {
-      const updatedConversation = [...conversation, { 
+      const currentConversation = conversations.find(c => c.id === currentConversationId)
+      const updatedMessages = [...currentConversation.messages, { 
         role: 'user', 
         content: message,
         timestamp: new Date().toISOString()
       }]
-      set({ conversation: updatedConversation })
 
-      // Process message with only the selected agent
-      const response = await selectedAgent.process(message, updatedConversation)
-      updatedConversation.push({
-        role: 'assistant',
-        agent: selectedAgent.name,
-        content: response,
-        timestamp: new Date().toISOString()
-      })
+      // Update conversation messages
+      set(state => ({
+        conversations: state.conversations.map(conv =>
+          conv.id === currentConversationId
+            ? { 
+                ...conv, 
+                messages: updatedMessages,
+                title: conv.title === 'New Chat' ? message.slice(0, 30) + '...' : conv.title
+              }
+            : conv
+        )
+      }))
+
+      // Process message with selected agent
+      const response = await selectedAgent.process(message, updatedMessages)
       
-      set({ conversation: updatedConversation })
-
-      // Save conversation to localStorage
-      localStorage.setItem('conversation', JSON.stringify(updatedConversation))
+      // Add agent response
+      set(state => ({
+        conversations: state.conversations.map(conv =>
+          conv.id === currentConversationId
+            ? {
+                ...conv,
+                messages: [...conv.messages, {
+                  role: 'assistant',
+                  agent: selectedAgent.name,
+                  content: response,
+                  timestamp: new Date().toISOString()
+                }]
+              }
+            : conv
+        )
+      }))
+      
+      get().saveConversations()
     } catch (error) {
       console.error('Error in agent processing:', error)
       set(state => ({
         error: error.message,
-        conversation: [...state.conversation, {
-          role: 'system',
-          content: `Error: ${error.message}`,
-          timestamp: new Date().toISOString()
-        }]
+        conversations: state.conversations.map(conv =>
+          conv.id === currentConversationId
+            ? {
+                ...conv,
+                messages: [...conv.messages, {
+                  role: 'system',
+                  content: `Error: ${error.message}`,
+                  timestamp: new Date().toISOString()
+                }]
+              }
+            : conv
+        )
       }))
     } finally {
       set({ isProcessing: false })
     }
   },
 
-  loadSavedConversation: () => {
-    try {
-      const savedConversation = localStorage.getItem('conversation')
-      if (savedConversation) {
-        set({ conversation: JSON.parse(savedConversation) })
-      }
-    } catch (error) {
-      console.error('Error loading saved conversation:', error)
-    }
+  saveConversations: () => {
+    const { conversations } = get()
+    localStorage.setItem('conversations', JSON.stringify(conversations))
   },
 
-  clearConversation: () => {
-    const { agents } = get()
+  clearCurrentConversation: () => {
+    const { currentConversationId, agents } = get()
+    if (!currentConversationId) return
+    
     agents.forEach(agent => agent.clearMemory())
-    set({ conversation: [], error: null })
-    localStorage.removeItem('conversation')
+    
+    set(state => ({
+      conversations: state.conversations.map(conv =>
+        conv.id === currentConversationId
+          ? { ...conv, messages: [] }
+          : conv
+      )
+    }))
+    
+    get().saveConversations()
   }
 }))
 
