@@ -9,7 +9,6 @@ const useAgentStore = create((set, get) => ({
   selectedAgent: null,
   isProcessing: false,
   error: null,
-  userId: null,
 
   initializeAgents: async () => {
     try {
@@ -23,10 +22,14 @@ const useAgentStore = create((set, get) => ({
       ]
       set({ agents, selectedAgent: agents[0], error: null })
       
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
       // Load saved conversations from Supabase
       const { data: conversations, error } = await supabase
         .from('conversations')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -52,9 +55,13 @@ const useAgentStore = create((set, get) => ({
   },
 
   createNewConversation: async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
     const newConversation = {
       title: 'New Chat',
       messages: [],
+      user_id: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -86,6 +93,9 @@ const useAgentStore = create((set, get) => ({
     
     if (!currentConversation) return
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     try {
       const { error } = await supabase
         .from('conversations')
@@ -95,11 +105,11 @@ const useAgentStore = create((set, get) => ({
           updated_at: new Date().toISOString()
         })
         .eq('id', currentConversation.id)
+        .eq('user_id', user.id)
 
       if (error) throw error
     } catch (error) {
       console.error('Error saving conversation:', error)
-      throw error
     }
   },
 
@@ -107,6 +117,9 @@ const useAgentStore = create((set, get) => ({
     const { selectedAgent, conversations, currentConversationId } = get()
     
     if (!selectedAgent || !currentConversationId) return
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
     set({ isProcessing: true, error: null })
     
@@ -147,6 +160,7 @@ const useAgentStore = create((set, get) => ({
           updated_at: new Date().toISOString()
         })
         .eq('id', currentConversationId)
+        .eq('user_id', user.id)
 
       // Process message with selected agent
       const response = await selectedAgent.process(message, updatedMessages)
@@ -179,6 +193,7 @@ const useAgentStore = create((set, get) => ({
           updated_at: new Date().toISOString()
         })
         .eq('id', currentConversationId)
+        .eq('user_id', user.id)
 
     } catch (error) {
       console.error('Error in agent processing:', error)
@@ -208,6 +223,7 @@ const useAgentStore = create((set, get) => ({
             updated_at: new Date().toISOString()
           })
           .eq('id', currentConversationId)
+          .eq('user_id', user.id)
       } catch (e) {
         console.error('Error saving error message:', e)
       }
@@ -217,39 +233,39 @@ const useAgentStore = create((set, get) => ({
   },
 
   deleteConversation: async (conversationId) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     try {
       const { error } = await supabase
         .from('conversations')
         .delete()
         .eq('id', conversationId)
+        .eq('user_id', user.id)
 
       if (error) throw error
 
-      set(state => {
-        const newConversations = state.conversations.filter(c => c.id !== conversationId)
-        const newCurrentId = state.currentConversationId === conversationId
-          ? newConversations[0]?.id || null
+      set(state => ({
+        conversations: state.conversations.filter(c => c.id !== conversationId),
+        currentConversationId: state.currentConversationId === conversationId
+          ? state.conversations[0]?.id
           : state.currentConversationId
-          
-        return {
-          conversations: newConversations,
-          currentConversationId: newCurrentId
-        }
-      })
+      }))
     } catch (error) {
       console.error('Error deleting conversation:', error)
     }
   },
 
   updateConversationTitle: async (conversationId, title) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     try {
       const { error } = await supabase
         .from('conversations')
-        .update({ 
-          title,
-          updated_at: new Date().toISOString()
-        })
+        .update({ title })
         .eq('id', conversationId)
+        .eq('user_id', user.id)
 
       if (error) throw error
 
@@ -274,28 +290,19 @@ const useAgentStore = create((set, get) => ({
   },
 
   clearCurrentConversation: async () => {
-    const { currentConversationId, agents } = get()
-    if (!currentConversationId) return
-    
-    agents.forEach(agent => agent.clearMemory())
-    
-    try {
-      const { error } = await supabase
-        .from('conversations')
-        .update({ 
-          messages: [],
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', currentConversationId)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-      if (error) throw error
+    try {
+      const newConversation = await get().createNewConversation()
+      if (!newConversation) throw new Error('Failed to create new conversation')
 
       set(state => ({
-        conversations: state.conversations.map(conv =>
-          conv.id === currentConversationId
-            ? { ...conv, messages: [] }
-            : conv
-        )
+        currentConversationId: newConversation.id,
+        conversations: [
+          newConversation,
+          ...state.conversations.filter(c => c.id !== newConversation.id)
+        ]
       }))
     } catch (error) {
       console.error('Error clearing conversation:', error)
