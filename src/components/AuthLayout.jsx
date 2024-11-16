@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import AuthModal from './AuthModal'
+// Touch to update features
 
 export default function AuthLayout({ children }) {
   const { user, loading, initialize } = useAuthStore()

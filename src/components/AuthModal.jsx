@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
+// Touch to update features
 
 export default function AuthModal() {
   const [isSignUp, setIsSignUp] = useState(false)

@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+// Touch to update features
 
 export class BaseAgent {
   constructor(name, description, systemPrompt) {

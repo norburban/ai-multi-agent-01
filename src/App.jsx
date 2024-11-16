@@ -4,6 +4,8 @@ import { useAgentStore } from './stores/agentStore'
 import AuthLayout from './components/AuthLayout'
 import { useAuthStore } from './stores/authStore'
 
+// Touch to update features
+
 function App() {
   const [input, setInput] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)

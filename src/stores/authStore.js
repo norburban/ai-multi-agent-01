@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+// Touch to update features
 
 export const useAuthStore = create((set) => ({
   user: null,
