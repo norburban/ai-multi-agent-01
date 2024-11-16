@@ -1,9 +1,5 @@
 import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
-})
+// Touch to update features
 
 export class BaseAgent {
   constructor(name, description, systemPrompt) {
@@ -25,6 +21,12 @@ export class BaseAgent {
         
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+
+        // Re-initialize OpenAI with current API key
+        const openai = new OpenAI({
+          apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+          dangerouslyAllowBrowser: true
+        })
         
         const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
@@ -52,6 +54,7 @@ export class BaseAgent {
         this.updateMemory({ role: 'assistant', content: reply })
         return reply
       } catch (error) {
+        console.error('OpenAI API Error:', error)
         retries++
         if (error.name === 'AbortError') {
           throw new Error(`${this.name} agent timeout: Response took too long`)
