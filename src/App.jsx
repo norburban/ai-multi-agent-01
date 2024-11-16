@@ -3,6 +3,7 @@ import ChatInterface from './components/ChatInterface'
 import { useAgentStore } from './stores/agentStore'
 import AuthLayout from './components/AuthLayout'
 import { useAuthStore } from './stores/authStore'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Touch to update features
 
@@ -17,8 +18,12 @@ function App() {
 
   useEffect(() => {
     if (!isInitialized) {
-      initializeAgents()
-      setIsInitialized(true)
+      try {
+        initializeAgents()
+        setIsInitialized(true)
+      } catch (error) {
+        console.error('Failed to initialize agents:', error)
+      }
     }
   }, [isInitialized, initializeAgents])
 
@@ -78,4 +83,12 @@ function App() {
   return <AuthLayout>{content}</AuthLayout>
 }
 
-export default App
+function AppWrapper() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  )
+}
+
+export default AppWrapper
