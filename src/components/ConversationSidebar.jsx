@@ -31,7 +31,12 @@ function ConversationSidebar() {
           <div 
             key={conv.id}
             className={`conversation-item ${conv.id === currentConversationId ? 'active' : ''}`}
-            onClick={() => selectConversation(conv.id)}
+            onClick={(e) => {
+              e.preventDefault()
+              selectConversation(conv.id)
+            }}
+            role="button"
+            tabIndex={0}
           >
             <MessageSquare size={16} />
             <span className="conversation-title">

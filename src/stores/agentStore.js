@@ -282,8 +282,31 @@ const useAgentStore = create((set, get) => ({
     }
   },
 
-  selectConversation: (conversationId) => {
-    set({ currentConversationId: conversationId })
+  selectConversation: async (conversationId) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    try {
+      // Get the latest conversation data from Supabase
+      const { data: conversation, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', user.id)
+        .single()
+
+      if (error) throw error
+
+      // Update the conversation in the store
+      set(state => ({
+        currentConversationId: conversationId,
+        conversations: state.conversations.map(conv =>
+          conv.id === conversationId ? { ...conv, ...conversation } : conv
+        )
+      }))
+    } catch (error) {
+      console.error('Error selecting conversation:', error)
+    }
   },
 
   setSelectedAgent: (agent) => {

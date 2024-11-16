@@ -9,7 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-scroll-area": "^1.2.1",
+    "@radix-ui/react-select": "^2.1.2",
+    "@radix-ui/react-slot": "^1.1.0",
     "@supabase/supabase-js": "^2.46.1",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "katex": "^0.16.9",
     "lucide-react": "^0.268.0",
     "openai": "^4.0.0",
     "react": "^18.2.0",
@@ -17,13 +23,19 @@
     "react-markdown": "^8.0.7",
     "react-syntax-highlighter": "^15.5.0",
     "react-tooltip": "^5.21.1",
+    "rehype-katex": "^6.0.3",
     "remark-gfm": "^3.0.1",
+    "remark-math": "^5.1.1",
+    "tailwind-merge": "^2.5.4",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
     "vite": "^4.4.5"
   }
 }
