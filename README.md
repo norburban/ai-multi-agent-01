@@ -70,10 +70,12 @@ ai-multi-agent-01/
 │   ├── components/      # React components
 │   ├── lib/            # Utility functions and configurations
 │   ├── stores/         # Zustand state management
+│   ├── utils/          # Helper utilities
 │   ├── App.jsx         # Main application component
 │   └── main.jsx        # Application entry point
-├── public/             # Static assets
-└── dist/              # Production build output
+├── messages/           # Message templates and test data
+├── public/            # Static assets
+└── dist/             # Production build output
 ```
 
 ## Development
@@ -84,172 +86,133 @@ To start the development server:
 npm run dev
 ```
 
-This will start the Vite development server. Open [http://localhost:5173](http://localhost:5173) to view it in your browser.
+The development server will start at [http://localhost:5173](http://localhost:5173).
 
-## Building for Production
+### Environment Setup
 
-To create a production build:
-
+1. Copy `.env.development` to create a new `.env` file:
 ```bash
-npm run build
+cp .env.development .env
 ```
 
-This will generate optimized production files in the `dist` directory.
-
-## Preview Production Build
-
-To preview the production build locally:
-
-```bash
-npm run preview
+2. Update the environment variables in `.env`:
+```env
+VITE_OPENAI_API_KEY=your_api_key_here
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Deployment on Vercel
+### Development Scripts
 
-### Prerequisites for Vercel Deployment
+- `npm run dev` - Start development server
+- `npm run build` - Create production build
+- `npm run preview` - Preview production build locally
 
-1. A [Vercel](https://vercel.com) account
-2. The [Vercel CLI](https://vercel.com/cli) (optional for command line deployment)
-3. Your code pushed to a Git repository (GitHub, GitLab, or Bitbucket)
+## Deployment
 
-### Method 1: Deploy with Vercel Dashboard
+### Vercel Deployment (Recommended)
 
-#### For New Projects
+#### Prerequisites
+- A [Vercel](https://vercel.com) account
+- Project code pushed to a Git repository (GitHub, GitLab, or Bitbucket)
+- Vercel CLI (optional): `npm i -g vercel`
 
-1. Log in to your Vercel account and click "New Project"
+#### Method 1: Deploy via Vercel Dashboard
 
-2. Import your repository from Git
+1. Import Project:
+   - Go to [Vercel Dashboard](https://vercel.com/new)
+   - Click "Import Project"
+   - Select your Git repository
 
-3. Configure the project:
-   - Framework Preset: Vite
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
+2. Configure Project:
+   - Framework Preset: `Vite`
+   - Root Directory: `./`
+   - Build Settings:
+     - Build Command: `npm run build`
+     - Output Directory: `dist`
+     - Install Command: `npm install`
 
-4. Add Environment Variables:
-   ```
-   VITE_OPENAI_API_KEY=your_api_key_here
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+3. Environment Variables:
+   - Add the following environment variables:
+     ```
+     VITE_OPENAI_API_KEY=your_api_key_here
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
 
-5. Click "Deploy"
+4. Deploy:
+   - Click "Deploy"
+   - Wait for the build and deployment to complete
 
-#### For Existing Projects
+#### Method 2: Deploy via Vercel CLI
 
-1. Log in to your Vercel account and select your existing project
-
-2. Update project settings if needed:
-   - Go to "Settings" → "Build & Development Settings"
-   - Verify/Update Framework Preset: Vite
-   - Verify/Update Build Command: `npm run build`
-   - Verify/Update Output Directory: `dist`
-   - Verify/Update Install Command: `npm install`
-
-3. Update Environment Variables:
-   - Go to "Settings" → "Environment Variables"
-   - Add or update required variables:
-   ```
-   VITE_OPENAI_API_KEY=your_api_key_here
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-4. Trigger a new deployment:
-   - Go to "Deployments"
-   - Click "Redeploy" on the latest deployment, or
-   - Push a new commit to your repository
-
-### Method 2: Deploy with Vercel CLI
-
-1. Install Vercel CLI globally:
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Login to Vercel:
+1. Login to Vercel:
    ```bash
    vercel login
    ```
 
-3. Deploy the project:
+2. Deploy:
    ```bash
+   # First-time deployment
    vercel
-   ```
 
-4. Follow the CLI prompts:
-   - Set up and deploy: `Y`
-   - Select scope: Your account or team
-   - Link to existing project: 
-     - `Y` if deploying to existing project
-     - `N` if creating new project
-   - If existing project: Select from list of projects
-   - If new project: 
-     - Enter project name: `ai-multi-agent-01`
-     - Select framework preset: `vite`
-
-5. Add or update environment variables:
-   ```bash
-   # For new projects
-   vercel env add VITE_OPENAI_API_KEY
-   vercel env add VITE_SUPABASE_URL
-   vercel env add VITE_SUPABASE_ANON_KEY
-
-   # For existing projects
-   vercel env pull   # backup existing env vars
-   vercel env rm VITE_OPENAI_API_KEY   # if needed
-   vercel env add VITE_OPENAI_API_KEY  # add new value
-   ```
-
-6. Deploy to production:
-   ```bash
+   # Production deployment
    vercel --prod
    ```
 
-### Post-Deployment
+3. Configure Environment Variables:
+   ```bash
+   # Add environment variables
+   vercel env add VITE_OPENAI_API_KEY
+   vercel env add VITE_SUPABASE_URL
+   vercel env add VITE_SUPABASE_ANON_KEY
+   ```
 
-1. Configure your custom domain (optional):
-   - Go to project settings → "Domains"
-   - Add or update custom domain
+### Post-Deployment Tasks
 
-2. Verify automatic deployments:
-   - Go to project settings → "Git"
-   - Confirm Production Branch is correct
-   - Check Preview Branch deployments settings
-   - Verify GitHub/GitLab/Bitbucket integration
+1. Domain Setup (Optional):
+   - Go to Project Settings → Domains
+   - Add your custom domain
+   - Configure DNS settings as instructed
 
-3. Monitor your deployment:
-   - View deployment status in Dashboard
-   - Check deployment logs
-   - Monitor performance analytics
-   - Set up status alerts (optional)
+2. Verify Deployment:
+   - Check deployment URL
+   - Test all main functionalities
+   - Verify environment variables
+   - Monitor build logs
 
-### Troubleshooting Deployment
+3. Setup Continuous Deployment:
+   - Enable auto-deployment for your main branch
+   - Configure preview deployments for other branches
+   - Set up deployment notifications (optional)
 
-Common issues and solutions:
+### Troubleshooting
 
-1. Build fails:
-   - Check if all dependencies are in `package.json`
-   - Verify environment variables are set
+#### Common Issues
+
+1. Build Failures:
+   - Verify all dependencies are in `package.json`
+   - Check environment variables are set correctly
    - Review build logs in Vercel Dashboard
-   - Try a clean install: `rm -rf node_modules && npm install`
+   - Try local build: `npm run build`
 
-2. Runtime errors:
+2. Runtime Errors:
    - Check browser console for errors
-   - Verify API endpoints are configured
-   - Ensure environment variables are accessible
+   - Verify API endpoints and environment variables
    - Test locally with `vercel dev`
+   - Check Vercel deployment logs
 
-3. Environment variables not working:
-   - Verify `VITE_` prefix is present
-   - Check both Development and Production environments
-   - Rebuild and redeploy after changes
-   - Use `vercel env ls` to list all variables
+3. Environment Variables:
+   - Ensure all variables start with `VITE_`
+   - Variables are case-sensitive
+   - Redeploy after updating variables
+   - Use `vercel env ls` to verify
 
-4. Deployment not updating:
-   - Force a clean rebuild: `vercel --force`
-   - Clear Vercel cache if needed
-   - Check if the correct branch is being deployed
+4. Performance Issues:
+   - Enable Vercel Analytics
+   - Check bundle size
+   - Verify API response times
+   - Monitor Vercel metrics
 
 ## Authentication
 

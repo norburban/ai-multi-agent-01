@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { ResearchAgent, WriterAgent, CriticAgent } from '../agents/SpecializedAgents'
+import { ResearchAgent, WriterAgent, CriticAgent, CommsSpecialist, SANReportSpecialist, AIRSpecialist } from '../agents/SpecializedAgents'
 import { supabase } from '../lib/supabase'
 // Touch to update features
 
@@ -17,9 +17,13 @@ const useAgentStore = create((set, get) => ({
         throw new Error('OpenAI API key not configured')
       }
       const agents = [
+        new CommsSpecialist(),
+        new SANReportSpecialist(),
+        new AIRSpecialist(),
         new ResearchAgent(),
         new WriterAgent(),
         new CriticAgent()
+        // Add more agents here
       ]
       set({ agents, selectedAgent: agents[0], error: null })
       
