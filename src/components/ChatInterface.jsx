@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAgentStore } from '../stores/agentStore'
-import { MessageSquare, Send, Plus, LogOut } from 'lucide-react'
+import { MessageSquare, Send, Plus } from 'lucide-react'
 import CopyButton from './CopyButton'
 import MessageContent from './MessageContent'
 import ConversationSidebar from './ConversationSidebar'
@@ -94,14 +94,6 @@ function ChatInterface({ input, setInput, onSubmit }) {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Sign Out Button */}
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <LogOut size={20} />
-            <span>Sign Out</span>
-          </button>
         </div>
       </div>
 
