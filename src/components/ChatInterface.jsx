@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAgentStore } from '../stores/agentStore'
-import { MessageSquare, Send, Plus } from 'lucide-react'
+import { Send } from 'lucide-react'
 import CopyButton from './CopyButton'
 import MessageContent from './MessageContent'
 import ConversationSidebar from './ConversationSidebar'
@@ -17,9 +17,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
     agents,
     selectedAgent,
     setSelectedAgent,
-    initializeAgents,
-    createNewConversation,
-    selectConversation
+    initializeAgents
   } = useAgentStore(state => ({
     conversations: state.conversations,
     currentConversationId: state.currentConversationId,
@@ -27,9 +25,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
     agents: state.agents,
     selectedAgent: state.selectedAgent,
     setSelectedAgent: state.setSelectedAgent,
-    initializeAgents: state.initializeAgents,
-    createNewConversation: state.createNewConversation,
-    selectConversation: state.selectConversation
+    initializeAgents: state.initializeAgents
   }))
 
   const currentConversation = conversations.find(c => c.id === currentConversationId)
@@ -63,39 +59,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
 
   return (
     <div className="fixed inset-0 flex overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 flex flex-col border-r border-gray-200 bg-white">
-        {/* New Chat Button */}
-        <div className="p-4 flex-shrink-0">
-          <button
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            onClick={createNewConversation}
-          >
-            <Plus size={20} />
-            <span>New Chat</span>
-          </button>
-        </div>
-
-        {/* Chat History */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <div className="space-y-1 p-2">
-            {conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => selectConversation(conv.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                  "hover:bg-gray-100",
-                  currentConversationId === conv.id ? "bg-gray-100" : ""
-                )}
-              >
-                <MessageSquare size={18} className="text-gray-500" />
-                <span className="truncate text-gray-700">{conv.title || 'New Chat'}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ConversationSidebar />
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -113,7 +77,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
               key={index}
               className={cn(
                 "flex flex-col max-w-[70%] space-y-2",
-                message.role === 'user' ? "" : ""
+                message.role === 'user' ? "ml-auto" : "mr-auto"
               )}
             >
               <div
@@ -129,7 +93,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
               <div
                 className={cn(
                   "flex items-center gap-2 text-xs text-gray-500",
-                  message.role === 'user' ? "" : ""
+                  message.role === 'user' ? "justify-end" : ""
                 )}
               >
                 {message.agent && <span>{message.agent}</span>}
@@ -152,7 +116,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
         <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
           <form onSubmit={onSubmit} className="flex items-center gap-4">
             <select
-              className="w-40 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+              className="w-40 flex-shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={selectedAgent?.name || ''}
               onChange={(e) => {
                 const agent = agents.find(a => a.name === e.target.value)

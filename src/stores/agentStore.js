@@ -235,9 +235,10 @@ const useAgentStore = create((set, get) => ({
 
   deleteConversation: async (conversationId) => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return { error: 'User not authenticated' }
 
     try {
+      // Delete the conversation from Supabase
       const { error } = await supabase
         .from('conversations')
         .delete()
@@ -246,14 +247,40 @@ const useAgentStore = create((set, get) => ({
 
       if (error) throw error
 
-      set(state => ({
-        conversations: state.conversations.filter(c => c.id !== conversationId),
-        currentConversationId: state.currentConversationId === conversationId
-          ? state.conversations[0]?.id
+      // Update local state
+      set(state => {
+        const updatedConversations = state.conversations.filter(c => c.id !== conversationId)
+        const needNewConversation = updatedConversations.length === 0 || 
+          (state.currentConversationId === conversationId && !updatedConversations[0]?.id)
+
+        // If this was the last conversation or we deleted the current conversation
+        if (needNewConversation) {
+          // Create a new conversation asynchronously
+          get().createNewConversation()
+          return {
+            conversations: updatedConversations,
+            currentConversationId: null,
+            error: null
+          }
+        }
+
+        // Update currentConversationId if we deleted the current conversation
+        const newCurrentId = state.currentConversationId === conversationId
+          ? updatedConversations[0]?.id
           : state.currentConversationId
-      }))
+
+        return {
+          conversations: updatedConversations,
+          currentConversationId: newCurrentId,
+          error: null
+        }
+      })
+
+      return { error: null }
     } catch (error) {
       console.error('Error deleting conversation:', error)
+      set({ error: `Failed to delete conversation: ${error.message}` })
+      return { error: error.message }
     }
   },
 
