@@ -47,54 +47,12 @@ body {
   @apply flex h-screen w-screen;
 }
 
-.conversation-sidebar {
-  @apply w-64 border-r border-gray-300 bg-white flex flex-col h-full;
-}
-
-.new-chat-button {
-  @apply mx-4 mt-4 p-2 bg-blue-600 text-white border-none rounded cursor-pointer flex items-center gap-2;
-}
-
-.new-chat-button:hover {
-  @apply bg-blue-500;
-}
-
-.conversations-list {
-  @apply flex-1 overflow-y-auto p-2;
-}
-
-.conversation-item {
-  @apply flex items-center gap-2 p-2 mx-2 my-1 rounded cursor-pointer select-none;
-  transition: background-color 0.2s ease;
-  outline: none;
-}
-
-.conversation-item:hover {
-  @apply bg-gray-100;
-}
-
-.conversation-item:focus {
-  @apply bg-gray-100 ring-2 ring-blue-500 ring-opacity-50;
-}
-
-.conversation-item.active {
-  @apply bg-gray-200;
-}
-
+/* Remove potentially conflicting styles */
+.conversation-sidebar,
+.new-chat-button,
+.conversations-list,
 .conversation-title {
-  @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm;
-}
-
-.delete-button {
-  @apply opacity-0 bg-none border-none text-gray-600 cursor-pointer p-1;
-}
-
-.conversation-item:hover .delete-button {
-  @apply opacity-100;
-}
-
-.delete-button:hover {
-  @apply text-red-600;
+  all: unset;
 }
 
 .chat-interface {

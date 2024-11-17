@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
+import { useAgentStore } from '../stores/agentStore'
 // Touch to update features
 
 export default function AuthModal() {
@@ -9,6 +10,7 @@ export default function AuthModal() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const { signIn, signUp } = useAuthStore()
+  const initializeAgents = useAgentStore(state => state.initializeAgents)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,6 +28,9 @@ export default function AuthModal() {
       // Clear form after successful signup
       setEmail('')
       setPassword('')
+    } else {
+      // Initialize agents after successful sign in
+      await initializeAgents()
     }
   }
 

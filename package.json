@@ -27,6 +27,7 @@
     "remark-gfm": "^3.0.1",
     "remark-math": "^5.1.1",
     "tailwind-merge": "^2.5.4",
+    "uuid": "^11.0.3",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
