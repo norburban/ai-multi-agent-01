@@ -28,13 +28,19 @@ export class BaseAgent {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
+        // Check if the message is already in the context
+        const messageExists = context.some(msg => 
+          msg.role === 'user' && msg.content === message
+        )
+
         const messages = [
           {
             role: "system",
             content: this.getSystemPrompt()
           },
           ...context,
-          { role: "user", content: message }
+          // Only append the message if it's not already in the context
+          ...(messageExists ? [] : [{ role: "user", content: message }])
         ]
 
         const response = await this.apiClient.createChatCompletion(messages)
