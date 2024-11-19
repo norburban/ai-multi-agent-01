@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 class APIClient {
   constructor(config = {}) {
     this.config = {
-      apiType: 'openai', // 'openai' or 'custom'
+      apiType: 'openai', // 'openai', 'mulesoft-stdai', 'mulesoft-genai', or 'custom'
       customFullUrl: '',
       clientId: '',
       clientSecret: '',
@@ -15,6 +15,15 @@ class APIClient {
         apiKey: import.meta.env.VITE_OPENAI_API_KEY,
         dangerouslyAllowBrowser: true
       });
+    }
+
+    // Detect Mulesoft API type from URL if not explicitly set
+    if (this.config.customFullUrl && this.config.apiType === 'custom') {
+      if (this.config.customFullUrl.includes('/openai/deployments')) {
+        this.config.apiType = 'mulesoft-stdai';
+      } else if (this.config.customFullUrl.includes('/genai')) {
+        this.config.apiType = 'mulesoft-genai';
+      }
     }
   }
 
@@ -54,7 +63,17 @@ class APIClient {
         content
       }));
 
-      const response = await fetch(this.config.customFullUrl, {
+      // Handle URL parameters without duplicating them
+      const url = new URL(this.config.customFullUrl);
+      if (!url.searchParams.has('api-version')) {
+        url.searchParams.append('api-version', '2023-07-01-preview');
+      }
+
+      const requestBody = {
+        messages: cleanedMessages
+      };
+
+      const response = await fetch(url.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,9 +81,7 @@ class APIClient {
           'client_id': this.config.clientId,
           'client_secret': this.config.clientSecret
         },
-        body: JSON.stringify({
-          messages: cleanedMessages
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -78,6 +95,33 @@ class APIClient {
         data: data,
         error: null
       };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  // Method for handling image-based requests
+  async createImageBasedCompletion(imageBase64, prompt) {
+    if (this.config.apiType !== 'mulesoft-genai') {
+      throw new Error('Image-based completion is only supported with mulesoft-genai API type');
+    }
+
+    try {
+      const messages = [{
+        role: 'user',
+        content: [
+          {
+            image: imageBase64
+          },
+          prompt
+        ]
+      }];
+
+      return this.createCustomChatCompletion(messages);
     } catch (error) {
       return {
         success: false,
