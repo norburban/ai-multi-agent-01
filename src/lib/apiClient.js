@@ -4,9 +4,7 @@ class APIClient {
   constructor(config = {}) {
     this.config = {
       apiType: 'openai', // 'openai' or 'custom'
-      customApiUrl: '',
-      customDeploymentName: '',
-      customApiVersion: '',
+      customFullUrl: '',
       clientId: '',
       clientSecret: '',
       ...config
@@ -56,9 +54,7 @@ class APIClient {
         content
       }));
 
-      const apiVersion = this.config.customApiVersion;
-      const url = `${this.config.customApiUrl}${this.config.customDeploymentName}/chat/completions?api-version=${apiVersion}`;
-      const response = await fetch(url, {
+      const response = await fetch(this.config.customFullUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

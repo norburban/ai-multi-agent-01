@@ -12,9 +12,7 @@ export class BaseAgent {
     this.maxMemoryLength = 10
     this.apiClient = new APIClient({
       apiType: import.meta.env.VITE_API_TYPE || 'openai',
-      customApiUrl: import.meta.env.VITE_CUSTOM_API_URL,
-      customDeploymentName: import.meta.env.VITE_CUSTOM_DEPLOYMENT_NAME,
-      customApiVersion: import.meta.env.VITE_CUSTOM_API_VERSION,
+      customFullUrl: import.meta.env.VITE_CUSTOM_FULL_URL,
       clientId: import.meta.env.VITE_CUSTOM_CLIENT_ID,
       clientSecret: import.meta.env.VITE_CUSTOM_CLIENT_SECRET
     })
