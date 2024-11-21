@@ -132,6 +132,7 @@ const useAgentStore = create((set, get) => ({
       const currentConversation = conversations.find(c => c.id === currentConversationId)
       if (!currentConversation) throw new Error('Conversation not found')
 
+      // Add user message at the end of the array (chronological order)
       const updatedMessages = [...(currentConversation.messages || []), { 
         role: 'user', 
         content: message,
@@ -170,7 +171,7 @@ const useAgentStore = create((set, get) => ({
       // Process message with selected agent
       const response = await selectedAgent.process(message, updatedMessages)
       
-      // Add agent response
+      // Add agent response at the end (chronological order)
       const messagesWithResponse = [...updatedMessages, {
         role: 'assistant',
         agent: selectedAgent.name,

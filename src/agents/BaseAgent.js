@@ -55,7 +55,7 @@ export class BaseAgent {
           throw new Error('Invalid response format')
         }
 
-        this.updateMemory({ role: 'assistant', content: reply })
+        // Removed updateMemory call as messages are stored in the global context
         return reply
       } catch (error) {
         console.error('API Error:', error)
@@ -88,18 +88,30 @@ export class BaseAgent {
   }
 
   prepareContext(globalContext) {
-    // Combine global and agent-specific context, prioritizing recent messages
-    const relevantContext = [...globalContext, ...this.memory]
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, this.maxMemoryLength)
+    // Remove duplicates by using a Map with content as key
+    const messageMap = new Map()
+    
+    // Process all messages maintaining chronological order
+    const allMessages = [...globalContext, ...this.memory]
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    
+    // Keep only unique messages, with later ones overwriting earlier ones
+    allMessages.forEach(msg => {
+      const key = `${msg.role}-${msg.content}`
+      messageMap.set(key, msg)
+    })
+    
+    // Convert back to array and apply length limit
+    const relevantContext = Array.from(messageMap.values())
+      .slice(-this.maxMemoryLength)
     
     // Calculate token estimate (rough approximation)
     const contextString = JSON.stringify(relevantContext)
     const estimatedTokens = contextString.length / 4 // Rough estimate: 4 chars per token
     
-    // If context is too large, prioritize most recent messages
+    // If context is too large, keep most recent messages while maintaining order
     if (estimatedTokens > 2000) {
-      return relevantContext.slice(0, Math.floor(relevantContext.length / 2))
+      return relevantContext.slice(Math.floor(relevantContext.length / 2))
     }
     
     return relevantContext
