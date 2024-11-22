@@ -90,10 +90,10 @@ function App() {
   // Show loading state while initializing agents
   if (!isInitialized) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 transition-opacity duration-500 ease-in-out">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
-          <div className="text-white text-lg">Initializing agents...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-800 mx-auto mb-4"></div>
+          <div className="text-gray-800 text-lg">Initializing agents...</div>
         </div>
       </div>
     )

@@ -104,7 +104,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
   }
 
   return (
-    <div className="fixed inset-0 flex overflow-hidden">
+    <div className="flex h-screen bg-gradient-to-br from-[#3f2103] via-[#654d35] to-[#8c7a68]">
       <ConversationSidebar />
 
       {/* Main Chat Area */}
@@ -223,7 +223,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t border-[var(--nestle-light-brown)] bg-white">
+        <div className="p-4 border-t border-[var(--nestle-light-brown)] bg-[var(--nestle-offwhite)]">
           <form onSubmit={onSubmit} className="flex items-center gap-2">
             <button
               type="button"
