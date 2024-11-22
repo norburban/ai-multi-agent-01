@@ -29,29 +29,29 @@ const HomePage = ({ onShowAuth }) => {
           className="text-center"
         >
           <h1 className="text-6xl font-bold text-[#d9d3cd] mb-6">
-            AI Multi-Agent System
+            AITCM
           </h1>
           <p className="text-xl text-[#d9d3cd] mb-12 max-w-2xl mx-auto">
-            Experience the power of collaborative AI agents working together to solve complex tasks
+            The Future is HERE
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 mt-16">
           {[
             {
-              title: 'Intelligent Collaboration',
-              description: 'Multiple AI agents working in harmony to achieve your goals',
-              icon: '🤝',
+              title: 'Communications Specialist',
+              description: 'Expert AI agent for managing IT Crisis Management communications, ensuring clear and timely updates during major incidents',
+              icon: '📢',
             },
             {
-              title: 'Real-time Processing',
-              description: 'Get instant responses and solutions to your queries',
-              icon: '⚡',
+              title: 'SAN Report Specialist',
+              description: 'Specialized in creating Situation Action Needs reports, tracking incident progress and providing structured updates',
+              icon: '📋',
             },
             {
-              title: 'Advanced Problem Solving',
-              description: 'Tackle complex challenges with specialized AI agents',
-              icon: '🧠',
+              title: 'AIR Specialist',
+              description: 'Advanced Incident Response specialist focused on analyzing and documenting major IT incidents',
+              icon: '🔍',
             },
           ].map((feature, index) => (
             <motion.div
@@ -81,6 +81,17 @@ const HomePage = ({ onShowAuth }) => {
             Get Started
           </button>
         </motion.div>
+
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="mt-20 py-6 border-t border-[#d9d3cd]/20 text-center"
+        >
+          <p className="text-sm text-[#d9d3cd]/70">
+            2024 AITCM. All rights reserved by Norb Urban @ Synthellect.ai
+          </p>
+        </motion.footer>
       </div>
     </div>
   );
