@@ -223,7 +223,7 @@ function ChatInterface({ input, setInput, onSubmit }) {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t border-[var(--nestle-light-brown)] bg-white">
+        <div className="p-4 border-t border-[var(--nestle-light-brown)] bg-[var(--nestle-offwhite)]">
           <form onSubmit={onSubmit} className="flex items-center gap-2">
             <button
               type="button"
