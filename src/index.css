@@ -36,26 +36,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background-color);
+  background: linear-gradient(to bottom right, var(--nestle-dark-brown), var(--nestle-medium-brown), var(--nestle-light-brown));
+  min-height: 100vh;
   color: var(--text-color);
 }
 
 /* Loading and error states */
 .loading-container,
 .error-container {
-  @apply flex flex-col items-center justify-center h-screen w-screen bg-[var(--nestle-offwhite)];
-}
-
-.loading {
-  @apply text-[var(--nestle-brown)] text-lg;
-}
-
-.error-container {
-  @apply text-center p-8;
-}
-
-.error-container h2 {
-  @apply text-[var(--nestle-red)] mb-4;
+  @apply flex flex-col items-center justify-center h-screen w-screen;
+  background: linear-gradient(to bottom right, var(--nestle-dark-brown), var(--nestle-medium-brown), var(--nestle-light-brown));
 }
 
 /* Chat interface specific styles */
