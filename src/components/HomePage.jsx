@@ -1,3 +1,8 @@
+/**
+ * AITCM Branded Homepage Component
+ * The Future is HERE - Main landing page for AITCM application
+ */
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
