@@ -214,6 +214,45 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    - Verify API response times
    - Monitor Vercel metrics
 
+## Interface Components
+
+The chat interface is composed of several key components:
+
+### Main Layout
+- **Main Container**: The root container that holds all chat interface elements
+- **Sidebar**: Left sidebar containing chat history and conversation management
+- **Main Chat Area**: Primary content area containing all chat-related components
+
+### Chat Components
+1. **Chat Header**
+   - Displays the current conversation title
+   - Located at the top of the main chat area
+
+2. **Messages Area**
+   - Scrollable container for message history
+   - **Message Container**: Wrapper for each message
+   - **Message Bubble**: Individual message display with rounded corners
+     - User messages: Brown background with white text
+     - Agent responses: White background with dark brown text
+   - **Message Footer**: Shows timestamp and agent information
+
+3. **Agent Selection Bar**
+   - Horizontal bar with agent selection buttons
+   - Quick access to different agents:
+     - Comms: Communications specialist
+     - SAN: Situation Action Needs specialist
+     - AIR: After Incident Review specialist
+     - Researcher: Research agent
+     - Writer: Content writing specialist
+     - Critic: Content review specialist
+
+4. **Input Area**
+   - Message input field
+   - Send button
+   - Located at the bottom of the main chat area
+
+Each component is styled using Tailwind CSS and follows the Nestlé brand color scheme for a consistent and professional appearance.
+
 ## Authentication
 
 The application uses Supabase Authentication for user management. Features include:

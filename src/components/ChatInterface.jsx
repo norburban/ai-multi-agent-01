@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAgentStore } from '../stores/agentStore'
-import { Send } from 'lucide-react'
+import { useAuthStore } from '../stores/authStore'
+import { Send, Clipboard } from 'lucide-react'
 import CopyButton from './CopyButton'
 import MessageContent from './MessageContent'
 import ConversationSidebar from './ConversationSidebar'
@@ -9,6 +10,9 @@ import { cn } from '../lib/utils'
 function ChatInterface({ input, setInput, onSubmit }) {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const titleInputRef = useRef(null)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editedTitle, setEditedTitle] = useState('')
   
   const {
     conversations,
@@ -17,7 +21,8 @@ function ChatInterface({ input, setInput, onSubmit }) {
     agents,
     selectedAgent,
     setSelectedAgent,
-    initializeAgents
+    initializeAgents,
+    updateConversationTitle
   } = useAgentStore(state => ({
     conversations: state.conversations,
     currentConversationId: state.currentConversationId,
@@ -25,7 +30,8 @@ function ChatInterface({ input, setInput, onSubmit }) {
     agents: state.agents,
     selectedAgent: state.selectedAgent,
     setSelectedAgent: state.setSelectedAgent,
-    initializeAgents: state.initializeAgents
+    initializeAgents: state.initializeAgents,
+    updateConversationTitle: state.updateConversationTitle
   }))
 
   const currentConversation = conversations.find(c => c.id === currentConversationId)
@@ -33,6 +39,26 @@ function ChatInterface({ input, setInput, onSubmit }) {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const handleTitleEdit = () => {
+    setEditedTitle(currentConversation?.title || '')
+    setIsEditingTitle(true)
+  }
+
+  const handleTitleSave = async () => {
+    if (editedTitle.trim() && currentConversationId) {
+      await updateConversationTitle(currentConversationId, editedTitle.trim())
+    }
+    setIsEditingTitle(false)
+  }
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleTitleSave()
+    } else if (e.key === 'Escape') {
+      setIsEditingTitle(false)
+    }
   }
 
   useEffect(() => {
@@ -57,6 +83,26 @@ function ChatInterface({ input, setInput, onSubmit }) {
     }
   }, [isProcessing])
 
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingTitle) {
+      titleInputRef.current?.focus()
+    }
+  }, [isEditingTitle])
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      // Only update if we got text content
+      if (text) {
+        setInput(text)
+        inputRef.current?.focus()
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard:', err)
+    }
+  }
+
   return (
     <div className="fixed inset-0 flex overflow-hidden">
       <ConversationSidebar />
@@ -64,40 +110,79 @@ function ChatInterface({ input, setInput, onSubmit }) {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Chat Header */}
-        <div className="h-16 flex-shrink-0 flex items-center px-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 truncate">
-            {currentConversation?.title || 'New Chat'}
-          </h2>
+        <div className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-[var(--nestle-light-brown)] bg-[var(--nestle-offwhite)]">
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              className="title-input"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              maxLength={50}
+            />
+          ) : (
+            <h2 
+              className="editable-title"
+              onClick={handleTitleEdit}
+              title="Click to edit"
+            >
+              {currentConversation?.title || 'New Chat'}
+            </h2>
+          )}
+          <div className="flex justify-end">
+            <button 
+              type="button" 
+              onClick={useAuthStore.getState().signOut}
+              className="px-4 py-2 text-sm font-medium text-[var(--nestle-offwhite)] bg-[var(--nestle-brown)] rounded-md hover:bg-[var(--nestle-dark-brown)] active:transform active:scale-95 transition-all duration-150 cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6 bg-[var(--nestle-offwhite)]">
           {messages.map((message, index) => (
             <div
               key={index}
               className={cn(
-                "flex flex-col max-w-[70%] space-y-2",
-                message.role === 'user' ? "ml-auto" : "mr-auto"
+                message.role === 'user' 
+                  ? "flex flex-col max-w-[70%] space-y-2"
+                  : "flex flex-col max-w-[90%] space-y-2",
+                message.role === 'user' ? "mr-auto" : "ml-auto"
               )}
             >
               <div
                 className={cn(
                   "rounded-lg px-4 py-2",
                   message.role === 'user'
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-900"
+                    ? "bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)]"
+                    : "bg-white text-[var(--nestle-dark-brown)] border border-[var(--nestle-light-brown)]"
                 )}
               >
                 <MessageContent content={message.content || ''} />
               </div>
               <div
                 className={cn(
-                  "flex items-center gap-2 text-xs text-gray-500",
-                  message.role === 'user' ? "justify-end" : ""
+                  "flex items-center gap-2 text-xs text-[var(--nestle-medium-brown)]",
+                  message.role === 'user' ? "justify-end" : "justify-start"
                 )}
               >
                 {message.agent && <span>{message.agent}</span>}
-                <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
+                <span>
+                  {new Date(message.timestamp).toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                    timeZone: 'UTC'
+                  }).replace(',', '').replace(/\s(?=[0-9])/, ' ')} UTC
+                </span>
                 <CopyButton text={message.content || ''} />
               </div>
             </div>
@@ -112,43 +197,64 @@ function ChatInterface({ input, setInput, onSubmit }) {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Agent Selection Bar */}
+        <div className="border-t border-[var(--nestle-light-brown)] bg-[var(--nestle-offwhite)] px-6 py-2">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {agents.map((agent) => {
+              // Use the simplified name defined in the agent class
+              const simplifiedName = agent.simplifiedName || agent.name;
+              
+              return (
+                <button
+                  key={agent.name}
+                  onClick={() => setSelectedAgent(agent)}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                    selectedAgent?.name === agent.name
+                      ? "bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)]"
+                      : "bg-[var(--nestle-tan)] text-[var(--nestle-dark-brown)] hover:bg-[var(--nestle-light-brown)]"
+                  )}
+                >
+                  {simplifiedName}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Input Area */}
-        <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
-          <form onSubmit={onSubmit} className="flex items-center gap-4">
-            <select
-              className="w-40 flex-shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedAgent?.name || ''}
-              onChange={(e) => {
-                const agent = agents.find(a => a.name === e.target.value)
-                setSelectedAgent(agent)
-              }}
+        <div className="p-4 border-t border-[var(--nestle-light-brown)] bg-white">
+          <form onSubmit={onSubmit} className="flex items-center gap-2">
+            <button
+              type="button"
+              className="p-2 text-[var(--nestle-medium-brown)] hover:text-[var(--nestle-brown)] transition-colors duration-200 hover:bg-[var(--nestle-tan)] rounded"
+              onClick={handlePaste}
+              title="Paste from clipboard"
             >
-              {agents.map(agent => (
-                <option key={agent.name} value={agent.name}>
-                  {agent.name}
-                </option>
-              ))}
-            </select>
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isProcessing}
-              className="flex-1 min-w-0 rounded-lg border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              <Clipboard size={18} />
+            </button>
+            <div className="relative flex-1">
+              <textarea
+                ref={inputRef}
+                className="w-full p-2 border border-[var(--nestle-light-brown)] rounded-md focus:outline-none focus:border-[var(--nestle-brown)] resize-none"
+                placeholder={selectedAgent ? `Ask ${selectedAgent.name}...` : "Select an agent..."}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    onSubmit(e)
+                  }
+                }}
+                rows={3}
+              />
+            </div>
             <button
               type="submit"
-              disabled={isProcessing || !selectedAgent}
-              className={cn(
-                "flex items-center justify-center rounded-lg px-4 py-2 text-white transition-colors",
-                isProcessing || !selectedAgent
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              )}
+              className="p-2 bg-[var(--nestle-brown)] text-white rounded-md hover:bg-[var(--nestle-dark-brown)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              disabled={!input.trim() || isProcessing || !selectedAgent}
             >
-              <Send size={20} />
+              <Send size={18} />
             </button>
           </form>
         </div>
