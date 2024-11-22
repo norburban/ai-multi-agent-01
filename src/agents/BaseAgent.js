@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import APIClient from '../lib/apiClient';
 // Touch to update features
 
 export class BaseAgent {
@@ -6,10 +6,16 @@ export class BaseAgent {
     this.name = name
     this.description = description
     this.systemPrompt = systemPrompt
-    this.memory = []
-    this.maxMemoryLength = 10
     this.maxRetries = 3
     this.timeout = 30000 // 30 seconds
+    this.memory = []
+    this.maxMemoryLength = 10
+    this.apiClient = new APIClient({
+      apiType: import.meta.env.VITE_API_TYPE || 'openai',
+      customFullUrl: import.meta.env.VITE_CUSTOM_FULL_URL,
+      clientId: import.meta.env.VITE_CUSTOM_CLIENT_ID,
+      clientSecret: import.meta.env.VITE_CUSTOM_CLIENT_SECRET
+    })
   }
 
   async process(message, globalContext = []) {
@@ -22,39 +28,37 @@ export class BaseAgent {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
-        // Re-initialize OpenAI with current API key
-        const openai = new OpenAI({
-          apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-          dangerouslyAllowBrowser: true
-        })
-        
-        const response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: this.getSystemPrompt()
-            },
-            ...context,
-            { role: "user", content: message }
-          ],
-          temperature: 0.7,
-          max_tokens: 1000,
-          presence_penalty: 0.6,
-          frequency_penalty: 0.5
-        }, { signal: controller.signal })
+        // Check if the message is already in the context
+        const messageExists = context.some(msg => 
+          msg.role === 'user' && msg.content === message
+        )
 
+        const messages = [
+          {
+            role: "system",
+            content: this.getSystemPrompt()
+          },
+          ...context,
+          // Only append the message if it's not already in the context
+          ...(messageExists ? [] : [{ role: "user", content: message }])
+        ]
+
+        const response = await this.apiClient.createChatCompletion(messages)
         clearTimeout(timeoutId)
 
-        const reply = response.choices[0].message.content
+        if (!response.success) {
+          throw new Error(response.error)
+        }
+
+        const reply = response.data.choices[0].message.content
         if (!this.validateResponse(reply)) {
           throw new Error('Invalid response format')
         }
 
-        this.updateMemory({ role: 'assistant', content: reply })
+        // Removed updateMemory call as messages are stored in the global context
         return reply
       } catch (error) {
-        console.error('OpenAI API Error:', error)
+        console.error('API Error:', error)
         retries++
         if (error.name === 'AbortError') {
           throw new Error(`${this.name} agent timeout: Response took too long`)
@@ -84,18 +88,30 @@ export class BaseAgent {
   }
 
   prepareContext(globalContext) {
-    // Combine global and agent-specific context, prioritizing recent messages
-    const relevantContext = [...globalContext, ...this.memory]
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, this.maxMemoryLength)
+    // Remove duplicates by using a Map with content as key
+    const messageMap = new Map()
+    
+    // Process all messages maintaining chronological order
+    const allMessages = [...globalContext, ...this.memory]
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    
+    // Keep only unique messages, with later ones overwriting earlier ones
+    allMessages.forEach(msg => {
+      const key = `${msg.role}-${msg.content}`
+      messageMap.set(key, msg)
+    })
+    
+    // Convert back to array and apply length limit
+    const relevantContext = Array.from(messageMap.values())
+      .slice(-this.maxMemoryLength)
     
     // Calculate token estimate (rough approximation)
     const contextString = JSON.stringify(relevantContext)
     const estimatedTokens = contextString.length / 4 // Rough estimate: 4 chars per token
     
-    // If context is too large, prioritize most recent messages
+    // If context is too large, keep most recent messages while maintaining order
     if (estimatedTokens > 2000) {
-      return relevantContext.slice(0, Math.floor(relevantContext.length / 2))
+      return relevantContext.slice(Math.floor(relevantContext.length / 2))
     }
     
     return relevantContext
