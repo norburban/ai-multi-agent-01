@@ -64,10 +64,54 @@ export class BaseAgent {
           throw new Error(`${this.name} agent timeout: Response took too long`)
         }
         if (retries === this.maxRetries) {
-          throw new Error(`${this.name} agent error after ${this.maxRetries} retries: ${error.message}`)
+          const analyzedError = this.analyzeError(error);
+          throw new Error(`${this.name} agent error after ${this.maxRetries} retries: ${analyzedError}`)
         }
         await new Promise(resolve => setTimeout(resolve, 1000 * retries)) // Exponential backoff
       }
+    }
+  }
+
+  analyzeError(error) {
+    try {
+      // If error is already a string, return it
+      if (typeof error === 'string') return error;
+      
+      // If error is an Error object with message
+      if (error instanceof Error) {
+        const errorStr = error.message;
+        try {
+          // Try to parse if the error message contains JSON
+          if (errorStr.includes('{') && errorStr.includes('}')) {
+            const match = errorStr.match(/\{[\s\S]*\}/);
+            if (match) {
+              const errorObj = JSON.parse(match[0]);
+              if (errorObj.errorMessage?.error?.message) {
+                return errorObj.errorMessage.error.message;
+              }
+            }
+          }
+        } catch (e) {
+          // If JSON parsing fails, return original error message
+          return errorStr;
+        }
+        return errorStr;
+      }
+      
+      // If error is an object
+      if (typeof error === 'object') {
+        if (error.errorMessage?.error?.message) {
+          return error.errorMessage.error.message;
+        }
+        if (error.message) {
+          return error.message;
+        }
+      }
+      
+      // Fallback
+      return JSON.stringify(error);
+    } catch (e) {
+      return 'Unknown error occurred';
     }
   }
 
@@ -79,12 +123,9 @@ export class BaseAgent {
   }
 
   getSystemPrompt() {
-    return `You are ${this.name}. ${this.description}\n${this.systemPrompt}\n\nImportant guidelines:
-    1. Be concise but thorough
-    2. Focus on accuracy and relevance
-    3. Maintain professional tone
-    4. Cite sources when applicable
-    5. Avoid repetition and redundancy`
+    const now = new Date();
+    const utcTimestamp = now.toISOString();
+    return `The current time is ${utcTimestamp} UTC.\n\nYou are a ${this.name}. ${this.description}\n${this.systemPrompt}`
   }
 
   prepareContext(globalContext) {

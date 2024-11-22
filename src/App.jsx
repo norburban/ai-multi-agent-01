@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import ChatInterface from './components/ChatInterface'
 import { useAgentStore } from './stores/agentStore'
 import AuthLayout from './components/AuthLayout'
@@ -6,6 +6,7 @@ import AuthModal from './components/AuthModal'
 import { useAuthStore } from './stores/authStore'
 import ErrorBoundary from './components/ErrorBoundary'
 import Logger from './utils/logger'
+import HomePage from './components/HomePage'
 
 function App() {
   const [input, setInput] = useState('')
@@ -17,10 +18,17 @@ function App() {
   const signOut = useAuthStore(state => state.signOut)
   const user = useAuthStore(state => state.user)
   const loading = useAuthStore(state => state.loading)
+  const initialize = useAuthStore(state => state.initialize)
+  const authModalRef = useRef()
+
+  // Initialize auth on app load
+  useEffect(() => {
+    initialize()
+  }, [initialize])
 
   // Handle initialization
   useEffect(() => {
-    const initialize = async () => {
+    const initAgents = async () => {
       if (!isInitialized && user) {
         try {
           Logger.info('Initializing agents...');
@@ -33,7 +41,7 @@ function App() {
       }
     };
 
-    initialize();
+    initAgents();
   }, [user, isInitialized, initializeAgents]);
 
   // Reset initialization state on logout
@@ -50,107 +58,73 @@ function App() {
     try {
       await sendMessage(input)
       setInput('')
-    } catch (err) {
-      Logger.error('Error sending message:', err)
+    } catch (error) {
+      Logger.error('Error sending message:', error)
     }
   }
 
-  const handleSignOut = async (e) => {
-    if (e) e.preventDefault();
-    
-    if (!user) {
-      Logger.info('No user found to sign out');
-      return;
-    }
-
+  const handleSignOut = async () => {
     try {
-      Logger.info('Attempting to sign out...');
-      const { error } = await signOut();
-      
-      if (error) {
-        Logger.error('Error signing out:', error);
-        return;
-      }
-      
-      Logger.info('Successfully signed out');
-      window.location.href = '/';
-    } catch (err) {
-      Logger.error('Exception during sign out:', err);
+      await signOut()
+    } catch (error) {
+      Logger.error('Error signing out:', error)
     }
   }
 
-  // Debug logging for render conditions
-  Logger.info('Render state:', { user, isInitialized, error, loading });
+  const handleShowAuth = useCallback(() => {
+    if (authModalRef.current?.showModal) {
+      authModalRef.current.showModal();
+    }
+  }, []);
 
-  if (loading) {
-    Logger.info('Auth is loading...');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
+  // Show homepage for non-authenticated users
   if (!user) {
-    Logger.info('No user, showing auth modal');
-    return <AuthModal />;
+    return (
+      <ErrorBoundary>
+        <HomePage onShowAuth={handleShowAuth} />
+        <AuthModal ref={authModalRef} />
+      </ErrorBoundary>
+    )
   }
 
+  // Show loading state while initializing agents
   if (!isInitialized) {
-    Logger.info('Still initializing agents...');
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <div className="text-gray-600">Initializing agents...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="text-white text-lg">Initializing agents...</div>
         </div>
       </div>
-    );
+    )
   }
 
-  if (error) {
-    Logger.error('Encountered error:', error);
-    return (
-      <div className="error-container">
-        <h2>Configuration Error</h2>
-        <p>{error}</p>
-        <p>Please check your environment configuration and reload the page.</p>
-      </div>
-    );
-  }
-
-  Logger.info('Rendering main content');
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex justify-end p-4">
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 active:bg-gray-800 active:transform active:scale-95 transition-all duration-150 cursor-pointer z-50"
-        >
-          Sign Out
-        </button>
-      </div>
-      <ChatInterface
-        input={input}
-        setInput={setInput}
-        onSubmit={handleSubmit}
-        isProcessing={isProcessing}
-      />
-    </div>
-  );
+    <ErrorBoundary>
+      <AuthLayout>
+        <div className="flex flex-col h-screen bg-gray-100">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <strong className="font-bold">Error!</strong>
+              <span className="block sm:inline"> {error}</span>
+            </div>
+          )}
+          <ChatInterface
+            input={input}
+            setInput={setInput}
+            onSubmit={handleSubmit}
+            isProcessing={isProcessing}
+          />
+        </div>
+      </AuthLayout>
+      <AuthModal ref={authModalRef} />
+    </ErrorBoundary>
+  )
 }
 
 function AppWrapper() {
   return (
-    <ErrorBoundary>
-      <AuthLayout>
-        <App />
-      </AuthLayout>
-    </ErrorBoundary>
+    <App />
   )
 }
 

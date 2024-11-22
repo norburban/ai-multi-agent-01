@@ -2,13 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles that we want to keep */
+/* Nestlé brand color palette */
 :root {
-  --primary-color: #007bff;
-  --secondary-color: #6c757d;
-  --background-color: #f8f9fa;
-  --border-color: #dee2e6;
-  --text-color: #212529;
+  /* Primary Colors */
+  --nestle-brown: #63513D;
+  --nestle-liver: #692D20;
+  --nestle-chestnut: #924D34;
+  --nestle-crayola-brown: #AB5E44;
+  --nestle-tan: #DBBD97;
+  --nestle-red: #DD2727;
+  
+  /* Additional Colors */
+  --nestle-dark-brown: #3f2103;
+  --nestle-medium-brown: #654d35;
+  --nestle-light-brown: #8c7a68;
+  --nestle-beige: #b2a69a;
+  --nestle-offwhite: #d9d3cd;
+
+  /* System Colors */
+  --primary-color: var(--nestle-brown);
+  --secondary-color: var(--nestle-tan);
+  --background-color: var(--nestle-offwhite);
+  --border-color: var(--nestle-light-brown);
+  --text-color: var(--nestle-dark-brown);
   --sidebar-width: 260px;
 }
 
@@ -27,11 +43,11 @@ body {
 /* Loading and error states */
 .loading-container,
 .error-container {
-  @apply flex flex-col items-center justify-center h-screen w-screen bg-white;
+  @apply flex flex-col items-center justify-center h-screen w-screen bg-[var(--nestle-offwhite)];
 }
 
 .loading {
-  @apply text-blue-600 text-lg;
+  @apply text-[var(--nestle-brown)] text-lg;
 }
 
 .error-container {
@@ -39,7 +55,7 @@ body {
 }
 
 .error-container h2 {
-  @apply text-red-600 mb-4;
+  @apply text-[var(--nestle-red)] mb-4;
 }
 
 /* Chat interface specific styles */
@@ -48,15 +64,15 @@ body {
 }
 
 .conversation-sidebar {
-  @apply w-64 border-r border-gray-300 bg-white flex flex-col h-full;
+  @apply w-64 border-r border-[var(--nestle-light-brown)] bg-[var(--nestle-offwhite)] flex flex-col h-full;
 }
 
 .new-chat-button {
-  @apply mx-4 mt-4 p-2 bg-blue-600 text-white border-none rounded cursor-pointer flex items-center gap-2;
+  @apply mx-4 mt-4 p-2 bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)] border-none rounded cursor-pointer flex items-center gap-2;
 }
 
 .new-chat-button:hover {
-  @apply bg-blue-500;
+  @apply bg-[var(--nestle-dark-brown)];
 }
 
 .conversations-list {
@@ -64,29 +80,30 @@ body {
 }
 
 .conversation-item {
-  @apply flex items-center gap-2 p-2 mx-2 my-1 rounded cursor-pointer select-none;
+  @apply flex items-center gap-2 p-2 mx-2 my-1 rounded cursor-pointer select-none text-[var(--nestle-dark-brown)];
   transition: background-color 0.2s ease;
   outline: none;
 }
 
 .conversation-item:hover {
-  @apply bg-gray-100;
+  @apply bg-[var(--nestle-tan)];
 }
 
 .conversation-item:focus {
-  @apply bg-gray-100 ring-2 ring-blue-500 ring-opacity-50;
+  @apply bg-[var(--nestle-tan)] ring-2 ring-[var(--nestle-brown)] ring-opacity-50;
 }
 
 .conversation-item.active {
-  @apply bg-gray-200;
+  @apply bg-[var(--nestle-tan)];
 }
 
 .conversation-title {
   @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm;
 }
 
+.edit-button,
 .delete-button {
-  @apply opacity-0 bg-none border-none text-gray-600 cursor-pointer p-1;
+  @apply opacity-0 bg-none border-none text-[var(--nestle-medium-brown)] cursor-pointer p-1 hover:text-[var(--nestle-brown)] transition-colors duration-200;
 }
 
 .conversation-item:hover .delete-button {
@@ -94,11 +111,17 @@ body {
 }
 
 .delete-button:hover {
-  @apply text-red-600;
+  @apply text-[var(--nestle-red)];
+}
+
+.title-input {
+  @apply flex-1 text-sm bg-white border border-[var(--nestle-light-brown)] rounded px-2 py-1
+    focus:outline-none focus:border-[var(--nestle-brown)] focus:ring-1 
+    focus:ring-[var(--nestle-brown)];
 }
 
 .chat-interface {
-  @apply flex-1 flex flex-col h-full bg-white;
+  @apply flex-1 flex flex-col h-full bg-[var(--nestle-offwhite)];
 }
 
 .messages-container {
@@ -114,11 +137,11 @@ body {
 }
 
 .user-message {
-  @apply bg-gray-100 ml-auto mr-0;
+  @apply bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)] ml-auto mr-0;
 }
 
 .agent-message {
-  @apply bg-blue-100 mr-auto ml-0;
+  @apply bg-[var(--nestle-tan)] text-[var(--nestle-dark-brown)] mr-auto ml-0;
 }
 
 .message-header {
@@ -126,15 +149,15 @@ body {
 }
 
 .agent-name {
-  @apply font-medium text-blue-600;
+  @apply font-medium text-[var(--nestle-brown)];
 }
 
 .timestamp {
-  @apply text-gray-600;
+  @apply text-[var(--nestle-medium-brown)];
 }
 
 .input-form {
-  @apply border-t border-gray-300 p-4 bg-white;
+  @apply border-t border-[var(--nestle-light-brown)] p-4 bg-[var(--nestle-offwhite)];
 }
 
 .agent-select-wrapper {
@@ -142,23 +165,23 @@ body {
 }
 
 .agent-select {
-  @apply w-full p-2 border border-gray-300 rounded appearance-none bg-white cursor-pointer;
+  @apply w-full p-2 border border-[var(--nestle-light-brown)] rounded appearance-none bg-white cursor-pointer;
 }
 
 .select-icon {
-  @apply absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-600;
+  @apply absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-[var(--nestle-medium-brown)];
 }
 
 input[type="text"] {
-  @apply flex-1 p-2 border border-gray-300 rounded text-sm;
+  @apply flex-1 p-2 border border-[var(--nestle-light-brown)] rounded text-sm focus:border-[var(--nestle-brown)] focus:ring-1 focus:ring-[var(--nestle-brown)];
 }
 
 button[type="submit"] {
-  @apply p-2 bg-blue-600 text-white border-none rounded cursor-pointer;
+  @apply p-2 bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)] border-none rounded cursor-pointer hover:bg-[var(--nestle-dark-brown)];
 }
 
 button[type="submit"]:disabled {
-  @apply bg-gray-300 cursor-not-allowed;
+  @apply bg-[var(--nestle-light-brown)] cursor-not-allowed;
 }
 
 .processing-indicator {
@@ -170,7 +193,7 @@ button[type="submit"]:disabled {
 }
 
 .typing-dots > div {
-  @apply w-2 h-2 bg-gray-400 rounded-full animate-bounce;
+  @apply w-2 h-2 bg-[var(--nestle-medium-brown)] rounded-full animate-bounce;
 }
 
 .typing-dots > div:nth-child(2) {
@@ -179,6 +202,38 @@ button[type="submit"]:disabled {
 
 .typing-dots > div:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+/* Input area styles */
+.input-area {
+  @apply p-4 border-t border-[var(--nestle-light-brown)] bg-white;
+}
+
+textarea {
+  @apply w-full p-2 border border-[var(--nestle-light-brown)] rounded-md 
+    focus:outline-none focus:border-[var(--nestle-brown)] focus:ring-1 
+    focus:ring-[var(--nestle-brown)] resize-none;
+}
+
+/* Paste button styles */
+.paste-button {
+  @apply p-2 text-[var(--nestle-medium-brown)] hover:text-[var(--nestle-brown)] 
+    transition-colors duration-200 hover:bg-[var(--nestle-tan)] rounded;
+}
+
+.paste-button:active {
+  @apply transform scale-95;
+}
+
+/* Title editing styles */
+.editable-title {
+  @apply text-lg font-semibold text-[var(--nestle-dark-brown)] truncate cursor-pointer 
+    hover:text-[var(--nestle-brown)] transition-colors duration-200;
+}
+
+.editable-title:hover::after {
+  content: "✎";
+  @apply ml-2 text-sm text-[var(--nestle-medium-brown)] opacity-50;
 }
 
 /* Reset default margins and ensure full height */

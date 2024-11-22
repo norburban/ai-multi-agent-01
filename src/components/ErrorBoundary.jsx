@@ -17,21 +17,21 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
-            <p className="text-gray-600 mb-4">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--nestle-offwhite)]">
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full border border-[var(--nestle-light-brown)]">
+            <h2 className="text-2xl font-bold text-[var(--nestle-red)] mb-4">Something went wrong</h2>
+            <p className="text-[var(--nestle-dark-brown)] mb-4">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             {this.state.error?.message?.includes('Missing Supabase') && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[var(--nestle-medium-brown)]">
                 This error typically occurs when environment variables are missing.
                 Please ensure all required environment variables are set in your Vercel project settings.
               </p>
             )}
             <button
               onClick={() => window.location.reload()}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              className="bg-[var(--nestle-brown)] text-[var(--nestle-offwhite)] px-4 py-2 rounded hover:bg-[var(--nestle-dark-brown)] transition-colors"
             >
               Reload Page
             </button>

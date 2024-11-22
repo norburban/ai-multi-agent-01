@@ -1,10 +1,13 @@
 import { useAgentStore } from '../stores/agentStore'
-import { Plus, MessageSquare, Trash2, AlertCircle } from 'lucide-react'
+import { useAuthStore } from '../stores/authStore'
+import { Plus, MessageSquare, Trash2, AlertCircle, User, Clock } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function ConversationSidebar() {
   const [deleteError, setDeleteError] = useState(null)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  
   const {
     conversations,
     currentConversationId,
@@ -19,6 +22,17 @@ function ConversationSidebar() {
     deleteConversation: state.deleteConversation
   }))
 
+  const user = useAuthStore(state => state.user)
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
   const handleDelete = async (e, conversationId) => {
     e.stopPropagation()
     setDeleteError(null)
@@ -30,8 +44,21 @@ function ConversationSidebar() {
     }
   }
 
+  const formatTime = (date, options) => {
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      ...options
+    }).replace(',', '').replace(/\s(?=[0-9])/, ' ')
+  }
+
   return (
-    <div className="conversation-sidebar">
+    <div className="conversation-sidebar flex flex-col h-full">
       <button 
         className="new-chat-button"
         onClick={createNewConversation}
@@ -47,7 +74,7 @@ function ConversationSidebar() {
         </div>
       )}
 
-      <div className="conversations-list">
+      <div className="conversations-list flex-1">
         {conversations.map(conv => (
           <div 
             key={conv.id}
@@ -75,6 +102,30 @@ function ConversationSidebar() {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* User Info and Time Section */}
+      <div className="h-32 flex-shrink-0 border-t border-[var(--nestle-light-brown)] px-6 py-4 bg-[var(--nestle-offwhite)] flex flex-col justify-center">
+        <div className="flex items-center gap-2 text-[var(--nestle-dark-brown)] mb-3">
+          <User size={16} />
+          <span className="text-sm font-medium truncate">
+            {user?.email || 'Guest User'}
+          </span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[var(--nestle-medium-brown)]">
+            <Clock size={14} />
+            <span className="text-xs">
+              Local: {formatTime(currentTime, { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[var(--nestle-medium-brown)]">
+            <Clock size={14} />
+            <span className="text-xs">
+              UTC: {formatTime(currentTime, { timeZone: 'UTC' })}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )
