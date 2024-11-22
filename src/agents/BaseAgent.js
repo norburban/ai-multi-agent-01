@@ -125,7 +125,7 @@ export class BaseAgent {
   getSystemPrompt() {
     const now = new Date();
     const utcTimestamp = now.toISOString();
-    return `The current time is ${utcTimestamp} UTC.\n\nYou are a ${this.name}. ${this.description}\n${this.systemPrompt}`
+    return `The current time is ${utcTimestamp} UTC.\n\nYou are a ${this.name}. ${this.description}\n${this.systemPrompt}\n\nFormat it based on the template.`
   }
 
   prepareContext(globalContext) {
