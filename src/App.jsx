@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import ChatInterface from './components/ChatInterface'
 import { useAgentStore } from './stores/agentStore'
 import AuthLayout from './components/AuthLayout'
@@ -7,6 +8,17 @@ import { useAuthStore } from './stores/authStore'
 import ErrorBoundary from './components/ErrorBoundary'
 import Logger from './utils/logger'
 import HomePage from './components/HomePage'
+import Dashboard from './components/Dashboard'
+import ProfileSettings from './components/ProfileSettings'
+
+// Protected Route component
+const ProtectedRoute = ({ children }) => {
+  const user = useAuthStore(state => state.user)
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
 
 function App() {
   const [input, setInput] = useState('')
@@ -77,47 +89,66 @@ function App() {
     }
   }, []);
 
-  // Show homepage for non-authenticated users
-  if (!user) {
-    return (
-      <ErrorBoundary>
-        <HomePage onShowAuth={handleShowAuth} />
-        <AuthModal ref={authModalRef} />
-      </ErrorBoundary>
-    )
-  }
-
-  // Show loading state while initializing agents
-  if (!isInitialized) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 transition-opacity duration-500 ease-in-out">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-800 mx-auto mb-4"></div>
-          <div className="text-gray-800 text-lg">Initializing agents...</div>
-        </div>
-      </div>
-    )
+  if (loading) {
+    return <div>Loading...</div>
   }
 
   return (
     <ErrorBoundary>
-      <AuthLayout>
-        <div className="flex flex-col h-screen bg-gray-100">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <strong className="font-bold">Error!</strong>
-              <span className="block sm:inline"> {error}</span>
-            </div>
-          )}
-          <ChatInterface
-            input={input}
-            setInput={setInput}
-            onSubmit={handleSubmit}
-            isProcessing={isProcessing}
+      <BrowserRouter>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              user ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <HomePage onShowAuth={handleShowAuth} />
+              )
+            } 
           />
-        </div>
-      </AuthLayout>
-      <AuthModal ref={authModalRef} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <ProfileSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <AuthLayout>
+                  <div className="flex flex-col h-screen bg-gray-100">
+                    {error && (
+                      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <strong className="font-bold">Error!</strong>
+                        <span className="block sm:inline"> {error}</span>
+                      </div>
+                    )}
+                    <ChatInterface
+                      input={input}
+                      setInput={setInput}
+                      onSubmit={handleSubmit}
+                      isProcessing={isProcessing}
+                    />
+                  </div>
+                </AuthLayout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        <AuthModal ref={authModalRef} />
+      </BrowserRouter>
     </ErrorBoundary>
   )
 }
